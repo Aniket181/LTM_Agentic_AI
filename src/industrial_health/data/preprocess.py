@@ -115,8 +115,13 @@ def time_based_split(
 
 
 def get_feature_columns(df: pd.DataFrame) -> list[str]:
-    """Return feature column names (exclude timestamp, label, test_id)."""
-    exclude = {"timestamp", "label", "test_id", "bearing_id"}
+    """Return feature column names (exclude all metadata/label columns)."""
+    exclude = {
+        "test_id", "snapshot_index", "timestamp", "source_file",
+        "n_channels", "label", "label_name", "label_method", "fault_start_idx",
+        # legacy names kept for backward compat
+        "filename", "bearing_id",
+    }
     return [col for col in df.columns if col not in exclude]
 
 
