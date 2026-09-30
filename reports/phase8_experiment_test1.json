@@ -1,0 +1,131 @@
+{
+  "test_id": 1,
+  "health": {
+    "mean_health_score": 43.4285667903525,
+    "final_health_score": 0.53,
+    "final_health_status": "Critical",
+    "health_trend": "Degrading",
+    "status_counts": {
+      "Stable": 7,
+      "Degrading": 1443,
+      "Critical": 706
+    }
+  },
+  "fault": {
+    "final_rf_pred": 1,
+    "predicted_fault": "Faulty",
+    "normal_probability": 0.0133,
+    "fault_probability": 0.9867,
+    "fault_confidence": 0.9867
+  },
+  "anomaly": {
+    "anomaly_score": 0.6901,
+    "anomaly_prediction": 1,
+    "anomaly_label": "Anomaly",
+    "n_anomaly_predicted": 771
+  },
+  "execution": {
+    "agents_executed": [
+      "DataHealthAgent",
+      "FaultDiagnosisAgent",
+      "AnomalyAgent"
+    ],
+    "execution_order": [
+      "DataHealthAgent",
+      "FaultDiagnosisAgent",
+      "AnomalyAgent"
+    ],
+    "execution_status": "COMPLETED",
+    "errors": [],
+    "execution_log": [
+      {
+        "agent": "DataHealthAgent",
+        "status": "completed",
+        "duration_s": 0.547
+      },
+      {
+        "agent": "FaultDiagnosisAgent",
+        "status": "completed",
+        "duration_s": 0.25
+      },
+      {
+        "agent": "AnomalyAgent",
+        "status": "completed",
+        "duration_s": 0.187
+      }
+    ]
+  },
+  "timestamp": "2026-10-01T04:01:21.370190",
+  "phase": "8 \u2014 Agentic AI Orchestration",
+  "methodology": "Phase 8 introduces orchestration around existing deterministic ML and health-monitoring components. It does not introduce autonomous LLM reasoning or new machine-learning training.",
+  "configuration": {
+    "weight_rms": 0.2,
+    "weight_anomaly": 0.4,
+    "weight_fault": 0.4,
+    "threshold_stable": 70.0,
+    "threshold_degrading": 40.0,
+    "normal_reference_fraction": 0.7,
+    "anomaly_ref_max_score": 0.5,
+    "trend_window": 50
+  },
+  "health_details": {
+    "n_snapshots": 2156,
+    "health_min": 0.0,
+    "health_max": 70.73,
+    "health_mean": 43.4285667903525,
+    "health_median": 55.315,
+    "health_std": 26.105140213766685,
+    "status_counts": {
+      "Stable": 7,
+      "Degrading": 1443,
+      "Critical": 706
+    },
+    "trend_summary": {
+      "overall_trend": "Degrading",
+      "q1_mean_health": 59.02,
+      "q4_mean_health": 1.18,
+      "health_delta_q1_to_q4": -57.84,
+      "first_degradation_snapshot_pos": 1624,
+      "first_degradation_snapshot_idx": 1624,
+      "n_snapshots_stable": 7,
+      "n_snapshots_degrading": 1443,
+      "n_snapshots_critical": 706,
+      "pct_stable": 0.3,
+      "pct_degrading": 66.9,
+      "pct_critical": 32.7
+    },
+    "n_rms_cols": 8
+  },
+  "fault_details": {
+    "n_snapshots": 2156,
+    "n_faulty_predicted": 541,
+    "n_normal_predicted": 1615,
+    "pct_faulty_pred": 25.09,
+    "final_snapshot": {
+      "snapshot_index": 2155,
+      "rf_pred": 1,
+      "fault_label": "Faulty",
+      "prob_normal": 0.0133,
+      "prob_faulty": 0.9867,
+      "fault_confidence": 0.9867
+    },
+    "label_disclaimer": "RF trained on heuristic temporal labels (final 20% = Faulty). Probabilities are not calibrated Bayesian fault probabilities."
+  },
+  "anomaly_details": {
+    "n_snapshots": 2156,
+    "n_anomaly_predicted": 771,
+    "n_normal_predicted": 1385,
+    "pct_anomaly": 35.76,
+    "score_mean": 0.4774,
+    "score_min": 0.3658,
+    "score_max": 0.6911,
+    "final_snapshot": {
+      "snapshot_index": 2155,
+      "anomaly_score": 0.6901,
+      "anomaly_pred": 1,
+      "anomaly_label": "Anomaly"
+    },
+    "score_semantics": "decision_scores() = -score_samples(). HIGHER = MORE ANOMALOUS. anomaly_pred: 1=anomaly, 0=normal.",
+    "label_disclaimer": "IF trained on Normal-only data (Phase 6). Evaluation uses heuristic temporal labels \u2014 not verified fault-onset annotations."
+  }
+}

@@ -1,134 +1,191 @@
 """
-orchestrator.py — Agent Orchestrator
+orchestrator.py — Phase 8: Orchestrator Agent
 
-Controls the end-to-end analysis workflow.
-Passes a shared state dictionary between agents in sequence.
+PURPOSE:
+    Coordinate the three Phase 8 agents in a deterministic sequential pipeline:
 
-Workflow:
-  1. Data/Health Agent   → load features, compute health score + degradation
-  2. Fault Diagnosis Agent → RF prediction + confidence
-  3. RCA Agent            → root cause + evidence + feature importance
-  4. Maintenance Agent    → RAG retrieval + risk + recommendation
+        1. DataHealthAgent     — load features + Phase 7 health scoring
+        2. FaultDiagnosisAgent — Phase 5 RF fault prediction
+        3. AnomalyAgent        — Phase 6 IF anomaly detection
 
-The state dictionary is the single source of truth for the workflow.
-Each agent reads from state, runs its logic, and writes results back.
+    The orchestrator contains NO ML logic. It:
+        - initialises the shared AgentState
+        - calls agents in sequence
+        - stops if a required upstream agent fails (configurable)
+        - assembles the final structured result
 
-This architecture is upgradeable to LangGraph if needed later.
+ARCHITECTURE NOTE:
+    Phase 8 introduces orchestration around existing deterministic ML and
+    health-monitoring components. It does not introduce autonomous LLM
+    reasoning or new machine-learning training.
+
+    The architecture is deliberately simple and state-based so that it
+    can be upgraded to LangGraph (or similar) in a later phase without
+    changing the individual agent APIs.
 """
 
-from pathlib import Path
-from typing import Optional
-from loguru import logger
+from __future__ import annotations
 
-from industrial_health.agents.health_agent import HealthAgent
-from industrial_health.agents.diagnosis_agent import DiagnosisAgent
-from industrial_health.agents.rca_agent import RCAAgent
-from industrial_health.agents.maintenance_agent import MaintenanceAgent
+import time
+from pathlib import Path
+from typing import Any, Optional
+
+from industrial_health.agents.state import AgentState
+from industrial_health.agents.data_health_agent import DataHealthAgent
+from industrial_health.agents.fault_diagnosis_agent import FaultDiagnosisAgent
+from industrial_health.agents.anomaly_agent import AnomalyAgent
+from industrial_health.health.health_monitor import HealthConfig
 
 
 class OrchestratorAgent:
     """
-    Coordinates the multi-agent bearing health analysis pipeline.
+    Deterministic orchestrator for the Phase 8 agentic pipeline.
+
+    Execution sequence (always in this order):
+        1. DataHealthAgent        — Phase 7 health monitoring
+        2. FaultDiagnosisAgent    — Phase 5 RF fault diagnosis
+        3. AnomalyAgent           — Phase 6 IF anomaly detection
 
     Args:
-        models_path: Directory containing saved model files.
-        features_path: Directory containing feature datasets.
-        knowledge_base_path: Directory containing RAG knowledge files.
-        use_llm: Whether to use LLM for enhanced explanations.
+        models_dir:     Directory containing saved model .joblib files.
+        features_dir:   Directory containing test{N}_features.csv files.
+        scalers_dir:    Directory containing .pkl scaler files.
+        test_id:        IMS test ID (1 only in Phase 8).
+        health_config:  HealthConfig for Phase 7 weights/thresholds.
+        stop_on_failure: If True, halt pipeline when DataHealthAgent fails
+                         (downstream agents require its output). Default True.
     """
+
+    _EXECUTION_ORDER = [
+        "DataHealthAgent",
+        "FaultDiagnosisAgent",
+        "AnomalyAgent",
+    ]
 
     def __init__(
         self,
-        models_path: Path,
-        features_path: Path,
-        knowledge_base_path: Path,
-        use_llm: bool = False,
+        models_dir: Path,
+        features_dir: Path,
+        scalers_dir: Path,
+        test_id: int = 1,
+        health_config: Optional[HealthConfig] = None,
+        stop_on_failure: bool = True,
     ):
-        self.models_path = Path(models_path)
-        self.features_path = Path(features_path)
-        self.knowledge_base_path = Path(knowledge_base_path)
-        self.use_llm = use_llm
+        self.models_dir     = Path(models_dir)
+        self.features_dir   = Path(features_dir)
+        self.scalers_dir    = Path(scalers_dir)
+        self.test_id        = test_id
+        self.health_config  = health_config
+        self.stop_on_failure = stop_on_failure
 
-        # Initialize sub-agents
-        self.health_agent = HealthAgent(
-            models_path=self.models_path,
-            features_path=self.features_path,
+        # ── Resolve artifact paths ──────────────────────────────────────────
+        self._rf_model_path  = self.models_dir / f"random_forest_test{test_id}.joblib"
+        self._rf_scaler_path = self.scalers_dir / f"phase5_test{test_id}_scaler.pkl"
+        self._if_model_path  = self.models_dir / f"isolation_forest_test{test_id}.joblib"
+        self._if_scaler_path = self.scalers_dir / f"phase6_test{test_id}_scaler.pkl"
+
+        # ── Instantiate agents ──────────────────────────────────────────────
+        self.data_health_agent = DataHealthAgent(
+            features_dir=self.features_dir,
+            rf_model_path=self._rf_model_path,
+            rf_scaler_path=self._rf_scaler_path,
+            if_model_path=self._if_model_path,
+            if_scaler_path=self._if_scaler_path,
+            config=self.health_config,
         )
-        self.diagnosis_agent = DiagnosisAgent(
-            models_path=self.models_path,
+        self.fault_diagnosis_agent = FaultDiagnosisAgent(
+            features_dir=self.features_dir,
+            rf_model_path=self._rf_model_path,
+            rf_scaler_path=self._rf_scaler_path,
         )
-        self.rca_agent = RCAAgent()
-        self.maintenance_agent = MaintenanceAgent(
-            knowledge_base_path=self.knowledge_base_path,
-            use_llm=use_llm,
+        self.anomaly_agent = AnomalyAgent(
+            features_dir=self.features_dir,
+            if_model_path=self._if_model_path,
+            if_scaler_path=self._if_scaler_path,
         )
 
-        logger.info("OrchestratorAgent initialized (use_llm={use_llm})")
-
-    def run(
-        self,
-        test_id: int,
-        snapshot_index: int = -1,
-        bearing_channel: Optional[str] = None,
-    ) -> dict:
+    def run(self) -> AgentState:
         """
-        Run the complete analysis pipeline for a given test snapshot.
-
-        Args:
-            test_id: IMS test ID (1, 2, or 3).
-            snapshot_index: Index of snapshot to analyze (-1 = latest).
-            bearing_channel: Specific bearing channel to focus on (optional).
+        Execute the full Phase 8 agentic pipeline.
 
         Returns:
-            Complete health report as a structured dictionary.
+            Populated AgentState with health, fault, and anomaly results,
+            plus a complete execution log.
         """
-        logger.info(
-            f"=== Orchestrator: Analyzing Test {test_id}, "
-            f"snapshot={snapshot_index} ==="
-        )
+        state = AgentState(test_id=self.test_id)
+        state.status = "RUNNING"
 
-        # ── Initialize state ───────────────────────────────────────────────
-        state = {
-            "test_id": test_id,
-            "snapshot_index": snapshot_index,
-            "bearing_channel": bearing_channel,
-            "status": "RUNNING",
-            "errors": [],
-        }
+        # ── Step 1: DataHealthAgent ─────────────────────────────────────────
+        state = self.data_health_agent.run(state)
+        if self.stop_on_failure and _agent_failed(state, "DataHealthAgent"):
+            state.status = "FAILED"
+            return state
 
-        # ── Step 1: Health Agent ───────────────────────────────────────────
-        try:
-            logger.info("Step 1: Health Agent running...")
-            state = self.health_agent.run(state)
-        except Exception as e:
-            logger.error(f"Health Agent failed: {e}")
-            state["errors"].append(f"HealthAgent: {e}")
+        # ── Step 2: FaultDiagnosisAgent ────────────────────────────────────
+        state = self.fault_diagnosis_agent.run(state)
+        if self.stop_on_failure and _agent_failed(state, "FaultDiagnosisAgent"):
+            state.status = "FAILED"
+            return state
 
-        # ── Step 2: Diagnosis Agent ────────────────────────────────────────
-        try:
-            logger.info("Step 2: Diagnosis Agent running...")
-            state = self.diagnosis_agent.run(state)
-        except Exception as e:
-            logger.error(f"Diagnosis Agent failed: {e}")
-            state["errors"].append(f"DiagnosisAgent: {e}")
-
-        # ── Step 3: RCA Agent ──────────────────────────────────────────────
-        try:
-            logger.info("Step 3: RCA Agent running...")
-            state = self.rca_agent.run(state)
-        except Exception as e:
-            logger.error(f"RCA Agent failed: {e}")
-            state["errors"].append(f"RCAAgent: {e}")
-
-        # ── Step 4: Maintenance Agent ──────────────────────────────────────
-        try:
-            logger.info("Step 4: Maintenance Agent running...")
-            state = self.maintenance_agent.run(state)
-        except Exception as e:
-            logger.error(f"Maintenance Agent failed: {e}")
-            state["errors"].append(f"MaintenanceAgent: {e}")
+        # ── Step 3: AnomalyAgent ───────────────────────────────────────────
+        state = self.anomaly_agent.run(state)
 
         # ── Finalize ───────────────────────────────────────────────────────
-        state["status"] = "COMPLETED" if not state["errors"] else "COMPLETED_WITH_ERRORS"
-        logger.info(f"=== Orchestrator: Analysis complete (status={state['status']}) ===")
+        state.status = "COMPLETED" if not state.errors else "COMPLETED_WITH_ERRORS"
         return state
+
+    def build_final_result(self, state: AgentState) -> dict[str, Any]:
+        """
+        Assemble a structured final result dict from the completed AgentState.
+
+        This is the primary output of the Phase 8 pipeline — a deterministic,
+        serializable summary.
+
+        Returns:
+            Nested dict suitable for JSON serialization and display.
+        """
+        return {
+            "test_id": state.test_id,
+            "health": {
+                "mean_health_score":   state.mean_health_score,
+                "final_health_score":  state.final_health_score,
+                "final_health_status": state.final_health_status,
+                "health_trend":        state.final_health_trend,
+                "status_counts":       state.status_counts,
+            },
+            "fault": {
+                "final_rf_pred":       state.final_rf_pred,
+                "predicted_fault":     state.final_fault_label,
+                "normal_probability":  state.final_prob_normal,
+                "fault_probability":   state.final_prob_faulty,
+                "fault_confidence": (
+                    state.final_prob_faulty if state.final_rf_pred == 1
+                    else state.final_prob_normal
+                ) if state.final_rf_pred is not None else None,
+            },
+            "anomaly": {
+                "anomaly_score":      state.final_anomaly_score,
+                "anomaly_prediction": state.final_anomaly_pred,
+                "anomaly_label": (
+                    "Anomaly" if state.final_anomaly_pred == 1 else "Normal"
+                ) if state.final_anomaly_pred is not None else None,
+                "n_anomaly_predicted": state.n_anomaly_predicted,
+            },
+            "execution": {
+                "agents_executed":  [e["agent"] for e in state.execution_log],
+                "execution_order":  self._EXECUTION_ORDER,
+                "execution_status": state.status,
+                "errors":           state.errors,
+                "execution_log":    state.execution_log,
+            },
+        }
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _agent_failed(state: AgentState, agent_name: str) -> bool:
+    """Return True if the most recent log entry for agent_name is 'failed'."""
+    for entry in reversed(state.execution_log):
+        if entry.get("agent") == agent_name:
+            return entry.get("status") == "failed"
+    return False
