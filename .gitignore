@@ -42,6 +42,10 @@ models/*.h5
 models/*.pt
 models/*.pth
 models/*.onnx
+models/*.npy
+
+# ── Temporary / scratch scripts ──────────────────────────────
+scripts/_*.py
 
 # ── Reports & Generated Figures ──────────────────────────────
 # Keep reports/figures/ folder but not generated images
