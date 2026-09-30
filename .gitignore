@@ -1,0 +1,91 @@
+# ============================================================
+# Agentic AI — Industrial Equipment Health Monitoring
+# .gitignore
+# ============================================================
+
+# ── Virtual Environments ────────────────────────────────────
+venvagentic/
+venv/
+.venv/
+env/
+ENV/
+
+# ── Python Cache ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Jupyter Notebooks ────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# ── Environment Variables ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Raw Dataset (Kaggle IMS Bearing Dataset) ─────────────────
+# Do NOT commit raw data
+archive/
+data/raw/
+data/processed/
+data/features/
+
+# ── Trained Model Files ──────────────────────────────────────
+# Discuss before committing any model file
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.onnx
+
+# ── Reports & Generated Figures ──────────────────────────────
+# Keep reports/figures/ folder but not generated images
+reports/figures/*.png
+reports/figures/*.jpg
+reports/figures/*.svg
+reports/figures/*.pdf
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── IDE / Editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS Files ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Build / Distribution ─────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+# ── Test Coverage ─────────────────────────────────────────────
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# ── ChromaDB Persistent Storage ──────────────────────────────
+chroma_db/
+*.chroma/
+
+# ── Temporary Files ──────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak
