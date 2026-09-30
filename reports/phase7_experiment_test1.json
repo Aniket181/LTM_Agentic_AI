@@ -1,0 +1,94 @@
+{
+  "phase": "7 \u2014 Health Monitoring & Explainable Health Score",
+  "dataset": "test1_features.csv",
+  "test_case": 1,
+  "timestamp": "2026-10-01T03:25:01.517617",
+  "configuration": {
+    "weight_rms": 0.2,
+    "weight_anomaly": 0.4,
+    "weight_fault": 0.4,
+    "threshold_stable": 70.0,
+    "threshold_degrading": 40.0,
+    "normal_reference_fraction": 0.7,
+    "anomaly_ref_max_score": 0.5,
+    "trend_window": 50
+  },
+  "data_summary": {
+    "total_snapshots": 2156,
+    "feature_count": 104,
+    "rms_feature_count": 8,
+    "normal_snapshots": 1724,
+    "faulty_snapshots": 432,
+    "fault_start_idx": 1724
+  },
+  "component_summary": {
+    "rms": {
+      "rms_columns_used": [
+        "bearing1_ch1__rms",
+        "bearing1_ch2__rms",
+        "bearing2_ch1__rms",
+        "bearing2_ch2__rms",
+        "bearing3_ch1__rms",
+        "bearing3_ch2__rms",
+        "bearing4_ch1__rms",
+        "bearing4_ch2__rms"
+      ],
+      "composite_rms_mean": 0.15116849628942483,
+      "composite_rms_min": 0.1174,
+      "composite_rms_max": 0.284293
+    },
+    "anomaly": {
+      "if_score_mean": 0.4773976864564008,
+      "if_score_min": 0.365847,
+      "if_score_max": 0.691114,
+      "n_anomaly_pred": 771
+    },
+    "fault": {
+      "prob_faulty_mean": 0.25253603896103893,
+      "prob_faulty_min": 0.0,
+      "prob_faulty_max": 1.0,
+      "n_faulty_pred": 541
+    }
+  },
+  "health_summary": {
+    "min_health_score": 0.0,
+    "max_health_score": 70.73,
+    "mean_health_score": 43.4285667903525,
+    "median_health_score": 55.315,
+    "std_health_score": 26.105140213766685
+  },
+  "status_counts": {
+    "Stable": 7,
+    "Degrading": 1443,
+    "Critical": 706
+  },
+  "trend_summary": {
+    "overall_trend": "Degrading",
+    "q1_mean_health": 59.02,
+    "q4_mean_health": 1.18,
+    "health_delta_q1_to_q4": -57.84,
+    "first_degradation_snapshot_pos": 1624,
+    "first_degradation_snapshot_idx": 1624,
+    "n_snapshots_stable": 7,
+    "n_snapshots_degrading": 1443,
+    "n_snapshots_critical": 706,
+    "pct_stable": 0.3,
+    "pct_degrading": 66.9,
+    "pct_critical": 32.7
+  },
+  "methodology_notes": [
+    "Health Score is a weighted integration of three components: RMS degradation (Phase 3), anomaly severity (Phase 6 IF), and fault confidence (Phase 5 RF).",
+    "No new ML model was trained in Phase 7.",
+    "RMS normalization reference derived from the Normal training period only (first 70% of Normal snapshots).",
+    "Phase 5 RF was trained using heuristic temporal labels and the stratified chronological exploratory protocol.",
+    "Phase 6 IF was trained exclusively on Normal-period data.",
+    "Anomaly score semantics: decision_scores() = -score_samples(); higher = more anomalous."
+  ],
+  "limitations": [
+    "Health Score is an engineering prototype \u2014 not a scientifically validated clinical/industrial health index.",
+    "Component weights (RMS=0.20, IF=0.40, RF=0.40) are engineering defaults and have not been optimised against ground-truth fault data.",
+    "Health thresholds (Stable>=70, Degrading>=40, Critical<40) are engineering rules, not industry-certified standards.",
+    "Phase 5 RF probabilities are not calibrated \u2014 they should not be interpreted as precise Bayesian fault probabilities.",
+    "Test 1 only. Results not generalisable to Tests 2 or 3 without retraining all constituent models."
+  ]
+}
