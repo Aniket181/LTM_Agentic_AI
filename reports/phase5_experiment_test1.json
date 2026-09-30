@@ -1,0 +1,162 @@
+{
+  "phase": "5 \u2014 Fault Diagnosis Baseline",
+  "test_id": 1,
+  "timestamp": "2026-10-01T02:11:55.253678",
+  "dataset": "test1_features.csv",
+  "n_total": 2156,
+  "split_method": "stratified_chronological",
+  "within_class_train_fraction": 0.7,
+  "fault_start_idx": 1724,
+  "split_sizes": {
+    "n_train": 1508,
+    "n_test": 648,
+    "n_normal_train": 1206,
+    "n_faulty_train": 302,
+    "n_normal_test": 518,
+    "n_faulty_test": 130
+  },
+  "feature_count": 104,
+  "model_params": {
+    "n_estimators": 200,
+    "max_depth": null,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2,
+    "max_features": "sqrt",
+    "random_state": 42,
+    "n_jobs": -1,
+    "class_weight": "balanced"
+  },
+  "scaler": "StandardScaler fitted on X_train only (Phase 5 split)",
+  "metrics": {
+    "accuracy": 0.8317901234567902,
+    "precision_normal": 1.0,
+    "recall_normal": 0.7895752895752896,
+    "f1_normal": 0.8824163969795038,
+    "precision_faulty": 0.5439330543933054,
+    "recall_faulty": 1.0,
+    "f1_faulty": 0.7046070460704607,
+    "f1_macro": 0.7935117215249823,
+    "f1_weighted": 0.8467447679391094,
+    "confusion_matrix": [
+      [
+        409,
+        109
+      ],
+      [
+        0,
+        130
+      ]
+    ]
+  },
+  "top_features": [
+    {
+      "rank": 1,
+      "feature": "bearing4_ch2__std",
+      "importance": 0.11685538798050157
+    },
+    {
+      "rank": 2,
+      "feature": "bearing4_ch1__std",
+      "importance": 0.0908786934945375
+    },
+    {
+      "rank": 3,
+      "feature": "bearing4_ch1__variance",
+      "importance": 0.08711902587963007
+    },
+    {
+      "rank": 4,
+      "feature": "bearing4_ch2__variance",
+      "importance": 0.0843605715326942
+    },
+    {
+      "rank": 5,
+      "feature": "bearing4_ch2__rms",
+      "importance": 0.07485633949823482
+    },
+    {
+      "rank": 6,
+      "feature": "bearing4_ch1__rms",
+      "importance": 0.05691202714262832
+    },
+    {
+      "rank": 7,
+      "feature": "bearing4_ch1__shape_factor",
+      "importance": 0.05316537283966693
+    },
+    {
+      "rank": 8,
+      "feature": "bearing4_ch2__shape_factor",
+      "importance": 0.05230671140282695
+    },
+    {
+      "rank": 9,
+      "feature": "bearing4_ch1__peak_to_peak",
+      "importance": 0.05037004118328305
+    },
+    {
+      "rank": 10,
+      "feature": "bearing4_ch2__spectral_energy",
+      "importance": 0.03971797053740919
+    },
+    {
+      "rank": 11,
+      "feature": "bearing4_ch2__peak_to_peak",
+      "importance": 0.03529015905190341
+    },
+    {
+      "rank": 12,
+      "feature": "bearing4_ch2__peak",
+      "importance": 0.030395798012096718
+    },
+    {
+      "rank": 13,
+      "feature": "bearing2_ch1__variance",
+      "importance": 0.028331776624249544
+    },
+    {
+      "rank": 14,
+      "feature": "bearing3_ch2__std",
+      "importance": 0.028202411619700343
+    },
+    {
+      "rank": 15,
+      "feature": "bearing4_ch1__spectral_energy",
+      "importance": 0.02689198319150095
+    },
+    {
+      "rank": 16,
+      "feature": "bearing3_ch2__spectral_energy",
+      "importance": 0.02139950842279029
+    },
+    {
+      "rank": 17,
+      "feature": "bearing4_ch1__peak",
+      "importance": 0.02040565378026139
+    },
+    {
+      "rank": 18,
+      "feature": "bearing2_ch1__rms",
+      "importance": 0.01889765684449418
+    },
+    {
+      "rank": 19,
+      "feature": "bearing3_ch2__rms",
+      "importance": 0.018275770807343904
+    },
+    {
+      "rank": 20,
+      "feature": "bearing3_ch1__rms",
+      "importance": 0.014981018877164156
+    }
+  ],
+  "leakage_checks": {
+    "random_shuffle_used": false,
+    "metadata_used_as_features": false,
+    "scaler_fit_on_test": false,
+    "phase4_scaler_reused": false,
+    "train_test_row_overlap": false,
+    "train_test_file_overlap": false
+  },
+  "label_disclaimer": "The binary Normal/Faulty labels are heuristic temporal labels based on the final 20% of each run. They are not precise fault-onset annotations. Results reflect performance under the heuristic temporal labeling protocol."
+}
