@@ -53,6 +53,9 @@ reports/figures/*.png
 reports/figures/*.jpg
 reports/figures/*.svg
 reports/figures/*.pdf
+# Generated experiment outputs (reproducible from source)
+reports/phase*.csv
+# Experiment JSON reports are tracked
 
 # ── Logs ─────────────────────────────────────────────────────
 logs/

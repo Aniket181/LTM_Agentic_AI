@@ -1,0 +1,71 @@
+{
+  "phase": "6 \u2014 Anomaly Detection Baseline",
+  "test_id": 1,
+  "timestamp": "2026-10-01T02:52:28.015022",
+  "dataset": "test1_features.csv",
+  "feature_count": 104,
+  "total_samples": 2156,
+  "training_samples": 1206,
+  "evaluation_samples": 950,
+  "training_label_distribution": {
+    "Normal": 1206,
+    "Faulty": 0
+  },
+  "evaluation_label_distribution": {
+    "Normal": 518,
+    "Faulty": 432
+  },
+  "fault_start_idx": 1724,
+  "normal_train_fraction": 0.7,
+  "model_parameters": {
+    "n_estimators": 200,
+    "contamination": "auto",
+    "max_samples": "auto",
+    "max_features": 1.0,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "scaler_information": "StandardScaler fitted ONLY on Normal training partition (1206 rows). Eval data is transform()-only.",
+  "score_semantics": "anomaly_score = -score_samples(). HIGHER = MORE ANOMALOUS. anomaly_pred: 1=anomaly, 0=normal.",
+  "anomaly_prediction_distribution": {
+    "n_predicted_anomaly": 606,
+    "n_predicted_normal": 344,
+    "pct_anomaly": 63.79
+  },
+  "metrics": {
+    "accuracy": 0.8168421052631579,
+    "precision_normal": 1.0,
+    "recall_normal": 0.6640926640926641,
+    "f1_normal": 0.7981438515081206,
+    "precision_faulty": 0.7128712871287128,
+    "recall_faulty": 1.0,
+    "f1_faulty": 0.8323699421965318,
+    "f1_macro": 0.8152568968523262,
+    "f1_weighted": 0.813707715905377
+  },
+  "confusion_matrix": [
+    [
+      344,
+      174
+    ],
+    [
+      0,
+      432
+    ]
+  ],
+  "leakage_checks": {
+    "random_shuffle_used": false,
+    "faulty_samples_used_in_fit": false,
+    "eval_normal_used_in_fit": false,
+    "scaler_fit_on_eval_or_faulty": false,
+    "metadata_used_as_features": false,
+    "phase4_phase5_scaler_reused": false
+  },
+  "limitations": [
+    "Heuristic labels (final 20% = Faulty) are not verified fault-onset annotations.",
+    "Metrics reflect agreement between IF predictions and temporal heuristic labels.",
+    "IsolationForest with contamination='auto' assumes ~10% anomalies by default.",
+    "No hyperparameter tuning was performed; this is a baseline result.",
+    "Test 1 only; results not generalised to Tests 2 or 3."
+  ]
+}
