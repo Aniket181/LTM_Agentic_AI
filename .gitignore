@@ -93,3 +93,6 @@ tmp/
 temp/
 *.tmp
 *.bak
+
+# Generated ML preprocessing artifacts
+models/scaler/
