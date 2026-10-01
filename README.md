@@ -229,7 +229,7 @@ streamlit run dashboard/app.py
 ### Run FastAPI Server
 
 ```powershell
-uvicorn dashboard.api:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ---

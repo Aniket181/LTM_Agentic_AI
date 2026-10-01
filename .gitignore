@@ -99,3 +99,7 @@ temp/
 
 # Generated ML preprocessing artifacts
 models/scaler/
+
+# ── IDE & Agent Tools ─────────────────────────────────────────
+.agents/
+.claude/
