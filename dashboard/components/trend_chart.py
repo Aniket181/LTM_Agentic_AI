@@ -129,6 +129,7 @@ def render_trend_chart(
     total_height = 480 if show_components else 360
 
     fig.update_layout(
+        template="plotly_dark",
         height=total_height,
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -136,26 +137,29 @@ def render_trend_chart(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
-    fig.update_xaxes(title_text="Snapshot Index", showgrid=True, gridcolor="#e5e7eb")
+    fig.update_xaxes(title_text="Snapshot Index", showgrid=True, gridcolor="#334155", zerolinecolor="#334155")
     fig.update_yaxes(
         title_text="Health Score",
         range=[0, 105],
         showgrid=True,
-        gridcolor="#e5e7eb",
+        gridcolor="#334155",
+        zerolinecolor="#334155",
         row=1,
     )
     if show_components:
         fig.update_yaxes(
             title_text="Component (0–100)",
             range=[0, 105],
+            showgrid=True,
+            gridcolor="#334155",
+            zerolinecolor="#334155",
             row=2,
         )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig)
 
     # ── Disclaimer ────────────────────────────────────────────────────────────
     st.caption(
         "⚠️ **Heuristic label boundary:** The dashed purple line marks the point "
-        "where the temporal label changes from Normal to Faulty. "
-        "This is not a verified fault-onset annotation."
+        "where the temporal label changes from Normal to Faulty."
     )
